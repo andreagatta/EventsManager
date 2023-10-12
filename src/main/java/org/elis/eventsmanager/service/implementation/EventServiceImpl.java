@@ -1,26 +1,20 @@
 package org.elis.eventsmanager.service.implementation;
 
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
-import org.elis.eventsmanager.dto.request.CreateCategoryRequest;
 import org.elis.eventsmanager.dto.request.CreateEventInstanceRequest;
 import org.elis.eventsmanager.dto.request.CreateEventRequest;
-import org.elis.eventsmanager.dto.request.CreateTicketRequest;
 import org.elis.eventsmanager.model.*;
 import org.elis.eventsmanager.repository.*;
 import org.elis.eventsmanager.service.definition.EventService;
-import org.elis.eventsmanager.util.AdminCheck;
 import org.elis.eventsmanager.util.VendorCheck;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,41 +29,38 @@ public class EventServiceImpl implements EventService {
     @Autowired
     private SeatRepository seatRepository;
     @Autowired
+    private SectionRepository sectionRepository;
+    @Autowired
     private CategoryRepository categoryRepository;
 
 
     @Override
-    public void createEvent(CreateEventRequest request) {
+    public void createEvent(CreateEventRequest request, User user) {
         //validation
 
         if(request==null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you have to insert something");
         }
 
-        Optional<User> optionalAdmin = userRepository.findByEmailAndPassword(request.getAdminEmail(), request.getAdminPassword());
-        if(optionalAdmin.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "cannot find admin");
-
-        }else {
-            User admin = optionalAdmin.get();
-            if(!VendorCheck.checkAuthorization(admin)){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you are not allowed");
-
-
-            }else{
                 Event event = new Event();
-                event.setUser(admin);
+                event.setUser(user);
                 event.setName(request.getName());
                 event.setDescription(request.getDescription());
-
+/*
                 for(CreateCategoryRequest createCategoryRequest : request.getCategories()){
                     Category category = new Category();
                     category.setName(createCategoryRequest.getName());
 
                     event.getCategories().add(category);
                     category.getEvents().add(event);
+                }*/
+                List<Category> category=categoryRepository.findAllById(request.getCategories());
+                for(Category c:category){
+                    if(c.getEvents()==null)c.setEvents(new ArrayList<>());
+                    c.getEvents().add(event);
                 }
-
+                event.setCategories(category);
+                event.setEventInstances(new ArrayList<>());
                 for(CreateEventInstanceRequest createEventInstanceRequest : request.getEventInstances()){
                     EventInstance eventInstance = new EventInstance();
 
@@ -92,7 +83,20 @@ public class EventServiceImpl implements EventService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you have to insert the place");
 
                     eventInstance.setPlace(place);
-
+                    List<Section> sections=sectionRepository.findAllById(createEventInstanceRequest.getTicketPrice().keySet());
+                    List<Ticket> tickets=new ArrayList<>();
+                    for(Section s:sections){
+                        double sectionPrice=createEventInstanceRequest.getTicketPrice().get(s.getId());
+                        for (Seat seat:s.getSeats()){
+                            Ticket t=new Ticket();
+                            t.setSeat(seat);
+                            t.setEventInstance(eventInstance);
+                            t.setPrice((float)sectionPrice);
+                            tickets.add(t);
+                        }
+                    }
+                    eventInstance.setTickets(tickets);
+                  /*
                     for(CreateTicketRequest createTicketRequest : createEventInstanceRequest.getTickets()){
                             Ticket ticket = new Ticket();
                             ticket.setPrice(createTicketRequest.getPrice());
@@ -107,7 +111,7 @@ public class EventServiceImpl implements EventService {
 
                         ticket.setEventInstance(eventInstance);
                         eventInstance.getTickets().add(ticket);
-                    }
+                    }*/
 
                     event.getEventInstances().add(eventInstance);
                     eventInstance.setEvent(event);
@@ -120,8 +124,5 @@ public class EventServiceImpl implements EventService {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "could not insert event");
                 }
             }
-            }
-        }
-
     }
 

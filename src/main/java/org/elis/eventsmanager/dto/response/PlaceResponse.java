@@ -13,6 +13,7 @@ public class PlaceResponse {
     private String city;
     private String province;
     private String CAP;
+    private boolean removed;
 
     private List<SectionResponse> sections = new ArrayList<>();
 }

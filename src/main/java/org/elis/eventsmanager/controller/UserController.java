@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.elis.eventsmanager.model.*;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,8 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static org.elis.eventsmanager.util.UtilPath.*;
+
 @RestController
-@RequestMapping("/user")
 public class UserController {
 
     @Autowired
@@ -35,7 +37,7 @@ public class UserController {
     //__________________________________G E N E R A L_______________________________________________________
 
 
-    @PostMapping("/login")
+    @PostMapping(LOGIN_USER_CLIENT)
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         User user = service.login(request);
         String token = tokenUtil.generateToken(user);
@@ -48,7 +50,7 @@ public class UserController {
     }
 
 
-    @GetMapping("/find_all")
+    @GetMapping(FIND_ALL_USER_ADMIN)
     public ResponseEntity<List<UserResponse>> findAll() {
         List<User> users = new ArrayList<>(service.findAll());
         if (users.isEmpty())
@@ -74,24 +76,27 @@ public class UserController {
 
     //______________________________S U P E R A D M I N____________________________________________________
 
-    @PutMapping("/superadmin/change_role")
-    public ResponseEntity<Void> changeRole(@Valid @RequestBody ChangeRoleRequest request) {
-            service.changeRole(request);
+    @PutMapping(CHANGE_ROLE_USER_SUPERADMIN)
+    public ResponseEntity<Void> changeRole(@Valid @RequestBody ChangeRoleRequest request, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
+        User user = (User) usernamePasswordAuthenticationToken.getPrincipal();
+            service.changeRole(request, user);
             return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     //___________________________________A D M I N________________________________________________________
 
 
-    @PutMapping("/admin/block_user")
-    public ResponseEntity<Void> blockUser(@Valid @RequestBody BlockUserRequest request) {
-            service.blockUser(request);
+    @PutMapping(BLOCK_USER_ADMIN)
+    public ResponseEntity<Void> blockUser(@Valid @RequestBody BlockUserRequest request, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
+        User user =(User) usernamePasswordAuthenticationToken.getPrincipal();
+            service.blockUser(request, user);
             return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @PutMapping("/admin/unlock_user")
-    public ResponseEntity<Void> unlockUser(@Valid @RequestBody BlockUserRequest request) {
-           service.unlockUser(request);
+    @PutMapping(UNLOCK_USER_ADMIN)
+    public ResponseEntity<Void> unlockUser(@Valid @RequestBody BlockUserRequest request, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
+        User user = (User) usernamePasswordAuthenticationToken.getPrincipal();
+           service.unlockUser(request, user);
             return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -100,7 +105,7 @@ public class UserController {
 
     //___________________________________C L I E N T_______________________________________________________
 
-    @PostMapping("/client/signin")
+    @PostMapping(SIGNIN_USER_CLIENT)
     public ResponseEntity<Void> ClientSignin(@Valid @RequestBody SigninRequest request) {
         service.clientSignin(request);
         return ResponseEntity.status(HttpStatus.OK).build();

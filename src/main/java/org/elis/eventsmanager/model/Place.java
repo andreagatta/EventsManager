@@ -21,6 +21,7 @@ public class Place {
     private String city;
     private String province;
     private String CAP;
+    private boolean removed;
 
     @OneToMany(mappedBy = "place",  cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<EventInstance> eventInstances = new ArrayList<>();

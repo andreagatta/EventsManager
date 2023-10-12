@@ -34,22 +34,14 @@ public class PlaceServiceImpl implements PlaceService {
     public List<Place> findAll(){
         return placeRepository.findAll();
     }
+    @Override
+    public List<Place> findAllByRemovedIsFalse(){
+        return placeRepository.findAllByRemovedIsFalse();
+    }
 
     @Override
     public void createPlace(CreatePlaceRequest request) {
-        Optional<User> optionalAdmin = userRepository.findByEmailAndPassword(request.getAdminEmail(), request.getAdminPassword());
-        if(request==null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you have to insert something");
-        }
 
-        if (optionalAdmin.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "admin not found");
-        }
-
-        User admin = optionalAdmin.get();
-        if (!AdminCheck.checkAuthorization(admin)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you are not allowed to do that");
-        } else {
             Place place = new Place();
             place.setName(request.getPlaceName());
             place.setWay(request.getPlaceWay());
@@ -71,6 +63,8 @@ public class PlaceServiceImpl implements PlaceService {
                 place.getSections().add(section);
             }
 
+            place.setRemoved(false);
+
             try {
                 place = placeRepository.save(place);
             } catch (Exception e) {
@@ -79,5 +73,4 @@ public class PlaceServiceImpl implements PlaceService {
             }
 
         }
-    }
 }

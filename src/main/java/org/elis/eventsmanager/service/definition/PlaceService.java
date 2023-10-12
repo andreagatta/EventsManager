@@ -9,4 +9,5 @@ public interface PlaceService {
 
     public void createPlace(CreatePlaceRequest request);
     public List<Place> findAll();
+    public List<Place> findAllByRemovedIsFalse();
 }

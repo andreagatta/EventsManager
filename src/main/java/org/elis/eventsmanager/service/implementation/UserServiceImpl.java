@@ -104,28 +104,23 @@ public List<User> findAll(){
     }
 
     @Override
-    public void blockUser(BlockUserRequest request){
+    public void blockUser(BlockUserRequest request, User user){
 
         //validation
 
-        Optional<User> optionalAdmin = userRepository.findByEmailAndPassword(request.getAdminEmail(), request.getAdminPassword());
-        if(optionalAdmin.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "admin not found");
-        }
 
-        User admin = optionalAdmin.get();
         Optional<User> optionalToBlock = userRepository.findById(request.getToBlockId());
         if(optionalToBlock.isEmpty()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "to block not found");
         }
 
         User toBlock = optionalToBlock.get();
-        if(!AdminCheck.checkAuthorization(admin) && admin.getId()==toBlock.getId() || admin.getRole().equals(toBlock.getRole())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you are not allowed to do that");
 
-        }else{
-            toBlock.setBlocked(true);
+        if(toBlock.getRole().equals(Role.SUPERADMIN) && user.getRole().equals(Role.ADMIN)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you cannot block a SUPERADMIN");
         }
+
+            toBlock.setBlocked(true);
 
         try{
             toBlock = userRepository.save(toBlock);
@@ -137,27 +132,22 @@ public List<User> findAll(){
     }
 
     @Override
-    public void unlockUser(BlockUserRequest request){
+    public void unlockUser(BlockUserRequest request, User user){
 
         //validation
 
-        Optional<User> optionalAdmin = userRepository.findByEmailAndPassword(request.getAdminEmail(), request.getAdminPassword());
-        if(optionalAdmin.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "admin not found");
-        }
-
-        User admin = optionalAdmin.get();
         Optional<User> optionalToUnlock = userRepository.findById(request.getToBlockId());
         if(optionalToUnlock.isEmpty()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "to unlock not found");
         }
 
         User toUnlock = optionalToUnlock.get();
-        if(!AdminCheck.checkAuthorization(admin) && admin.getId()==toUnlock.getId() || admin.getRole().equals(toUnlock.getRole())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you are not allowed to do that");
-        }else{
-            toUnlock.setBlocked(false);
+
+        if(toUnlock.getRole().equals(Role.SUPERADMIN) && user.getRole().equals(Role.ADMIN)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you cannot unlock a SUPERADMIN");
         }
+
+            toUnlock.setBlocked(false);
 
         try{
             toUnlock = userRepository.save(toUnlock);
@@ -169,27 +159,23 @@ public List<User> findAll(){
 
 
     @Override
-    public void changeRole(ChangeRoleRequest request){
+    public void changeRole(ChangeRoleRequest request, User user){
 
         //validation
 
-        Optional<User> optionalAdmin = userRepository.findByEmailAndPassword(request.getAdminEmail(), request.getAdminPassword());
-        if(optionalAdmin.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "admin not found");
-        }
 
-        User admin = optionalAdmin.get();
         Optional<User> optionalToChangeRole = userRepository.findById(request.getIdToChangeRole());
         if(optionalToChangeRole.isEmpty()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "toChangeRole not found");
         }
 
         User toChangeRole = optionalToChangeRole.get();
-        if(AdminCheck.checkAuthorization(admin) && admin.getId()==toChangeRole.getId() || admin.getRole().equals(toChangeRole.getRole())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you are not allowed to do that");
-        }else{
-            toChangeRole.setRole(request.getRole());
+
+        if(toChangeRole.getRole().equals(Role.SUPERADMIN) && user.getRole().equals(Role.ADMIN)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you cannot change role to SUPERADMIN");
         }
+
+            toChangeRole.setRole(request.getRole());
 
         try{
             toChangeRole = userRepository.save(toChangeRole);

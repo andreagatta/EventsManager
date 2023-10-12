@@ -11,9 +11,9 @@ import java.util.List;
 public interface UserService {
     public User login(LoginRequest request);
     public void clientSignin(SigninRequest request);
-    public void blockUser(BlockUserRequest request);
-    public void unlockUser(BlockUserRequest request);
-    public void changeRole(ChangeRoleRequest request);
+    public void blockUser(BlockUserRequest request, User user);
+    public void unlockUser(BlockUserRequest request, User user);
+    public void changeRole(ChangeRoleRequest request, User user);
     public List<User> findAll();
     public User findByEmail(String email);
 

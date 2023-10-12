@@ -12,12 +12,6 @@ import java.util.List;
 public class CreatePlaceRequest {
 
     //PLACE
-    @NotEmpty(message = "you have to insert an admin email")
-    @Email(message = "admin email is not valid")
-    private String adminEmail;
-    @NotEmpty(message = "you have to insert an admin password")
-    @Pattern(regexp = "((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\\W).{6,15})", message = "admin password is not valid")
-    private String adminPassword;
     @NotEmpty(message = "you have to insert a place name")
     private String placeName;
     @NotEmpty(message = "you have to insert a place way")

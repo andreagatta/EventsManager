@@ -11,6 +11,6 @@ public class CreateSectionRequest {
     @NotBlank(message = "you have to insert a section name")
     private String sectionName;
     //SEATS
-    @NotEmpty(message = "you have to insert a some seats")
+    @NotEmpty(message = "you have to insert some seats")
     private List<CreateSeatRequest> seats;
 }

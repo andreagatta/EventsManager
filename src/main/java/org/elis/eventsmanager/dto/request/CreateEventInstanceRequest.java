@@ -8,6 +8,8 @@ import org.elis.eventsmanager.model.Ticket;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+
 @Data
 public class CreateEventInstanceRequest {
     @Future(message = "the date for an instance cannot be before now")
@@ -18,6 +20,7 @@ public class CreateEventInstanceRequest {
     @NotNull(message = "you have to insert a place")
     private long place;
     @NotEmpty(message = "you have to insert some tickets")
-    private List<CreateTicketRequest> tickets;
+    //private List<CreateTicketRequest> tickets;
+    private Map<Long,Double> ticketPrice;
 
 }
